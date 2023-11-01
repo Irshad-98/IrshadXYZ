@@ -4,12 +4,12 @@ const { Client } = require("pg");
 app.use(express.json());
 
 const client = new Client({
-    user: "postgres",
-    password: "irshad123",
-    database: "postgres",
+    user: "root",
+    password: "GvO7uBQXjIoMxqROv7txvhOeqDm0frCo",
+    database: "test_db_h4e7",
     port: 5432,
-    host: "localhost",
-    ssl: false, 
+    host: "dpg-cl19nbjmgg9c73875org-a.oregon-postgres.render.com",
+    ssl: { rejectUnauthorized: false }, 
 });
 
 
