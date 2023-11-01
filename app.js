@@ -73,7 +73,7 @@ app.put("/mobile/:id", async (req, res) => {
     }
 });
 
-const port = 2410;
+const port = process.env.PORT||2410
 app.listen(port, () => {
     console.log(`Node app listening on port ${port}`);
 });
