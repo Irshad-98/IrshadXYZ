@@ -1,7 +1,10 @@
 const express = require("express");
 const app = express();
 const { Client } = require("pg");
+const cors = require("cors");
+
 app.use(express.json());
+app.use(cors())
 
 const client = new Client({
     user: "root",
@@ -14,66 +17,67 @@ const client = new Client({
 
 
 
-client.connect()
-    .then(() => {
-        console.log('Connected to the database');
-    })
-    .catch((err) => {
-        console.error('Error connecting to the database:', err);
-    });
-
-
-
-
-app.get("/mobile", async (req, res) => {
-    console.log("Inside /mobile get api");
+async function start() {
     try {
-        const queryText = 'SELECT * FROM mobiles';
-        const result = await client.query(queryText);
-        console.log('Query result:', result.rows);
-        res.send(result.rows);
-    } catch (err) {
-        console.error('Error executing query:', err);
-        res.status(500).send('Internal Server Error');
+      await client.connect();
+      console.log('Connected to the database');
+  
+      app.get("/mobile", async (req, res) => {
+        console.log("Inside /mobile get api");
+        try {
+          const queryText = 'SELECT * FROM mobiles';
+          const result = await client.query(queryText);
+          console.log('Query result:', result.rows);
+          res.status(200).json(result.rows);
+        } catch (err) {
+          console.error('Error executing query:', err);
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      });
+  
+      app.post("/mobile", async (req, res) => {
+        console.log("Inside post of mobile");
+        const { brand, model, price } = req.body;
+        const queryText = `
+          INSERT INTO mobiles (brand, model, price)
+          VALUES ($1, $2, $3)
+        `;
+        try {
+          const result = await client.query(queryText, [brand, model, price]);
+          console.log('Insertion result:', result);
+          res.status(201).json({ message: 'Insertion successful' });
+        } catch (err) {
+          console.error('Error executing query:', err);
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      });
+  
+      app.put("/mobile/:id", async (req, res) => {
+        console.log("Inside put of mobile");
+        const id = req.params.id;
+        const price = req.body.price;
+        const queryText = `
+          UPDATE mobiles SET price = $1
+          WHERE id = $2
+        `;
+        try {
+          const result = await client.query(queryText, [price, id]);
+          console.log('Update result:', result);
+          res.status(200).json({ message: 'Update successful' });
+        } catch (err) {
+          console.error('Error executing query:', err);
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      });
+  
+      const port = process.env.PORT || 2410;
+      app.listen(port, () => {
+        console.log(`Node app listening on port ${port}`);
+      });
+    } catch (error) {
+      console.error('Error connecting to the database:', error);
+      process.exit(1);
     }
-});
-
-app.post("/mobile", async (req, res) => {
-    console.log("Inside post of mobile");
-    const { brand, model, price } = req.body;
-    const queryText = `
-        INSERT INTO mobiles (brand, model, price)
-        VALUES ($1, $2, $3)
-    `;
-    try {
-        const result = await client.query(queryText, [brand, model, price]);
-        console.log('Insertion result:', result);
-        res.send('Insertion successful');
-    } catch (err) {
-        console.error('Error executing query:', err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-app.put("/mobile/:id", async (req, res) => {
-    console.log("Inside put of mobile");
-    const mobileID = req.params.id;
-    const price = req.body.price;
-    const queryText = `
-        UPDATE mobiles SET price = $1
-        WHERE id = $2
-    `;
-    try {
-        const result = await client.query(queryText, [price, mobileID]);
-        console.log('Update result:', result);
-        res.send('Update successful');
-    } catch (err) {
-        console.error('Error executing query:', err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-const port = process.env.PORT||2410
-app.listen(port, () => {
-    console.log(`Node app listening on port ${port}`);
-});
+  }
+  
+  start();
