@@ -34,6 +34,20 @@ async function start() {
           res.status(500).json({ error: 'Internal Server Error' });
         }
       });
+
+      app.get("/mobile/:id", async (req, res) => {
+        console.log("Inside /mobile get api");
+        try {
+          const { id } = req.params;
+          const queryText = "SELECT * FROM mobiles WHERE id = $1"; 
+          const result = await client.query(queryText, [id]); 
+          console.log('Query result:', result.rows);
+          res.status(200).json(result.rows);
+        } catch (err) {
+          console.error('Error executing query:', err);
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      });
   
       app.post("/mobile", async (req, res) => {
         console.log("Inside post of mobile");
