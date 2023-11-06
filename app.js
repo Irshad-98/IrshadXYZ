@@ -55,13 +55,16 @@ async function start() {
       app.put("/mobile/:id", async (req, res) => {
         console.log("Inside put of mobile");
         const id = req.params.id;
-        const price = req.body.price;
+        const { brand, model, price } = req.body;
+      
         const queryText = `
-          UPDATE mobiles SET price = $1
-          WHERE id = $2
+          UPDATE mobiles 
+          SET brand = $1, model = $2, price = $3
+          WHERE id = $4
         `;
+      
         try {
-          const result = await client.query(queryText, [price, id]);
+          const result = await client.query(queryText, [brand, model, price, id]);
           console.log('Update result:', result);
           res.status(200).json({ message: 'Update successful' });
         } catch (err) {
@@ -69,6 +72,24 @@ async function start() {
           res.status(500).json({ error: 'Internal Server Error' });
         }
       });
+      
+
+      app.delete("/mobile/:id", async (req, res) => {
+        console.log("Inside delete of mobile");
+        const id = req.params.id;
+        const queryText = `
+        DELETE FROM mobiles WHERE id = $1
+        `;
+        try {
+            const result = await client.query(queryText, [id]); 
+            console.log('Delete result:', result);
+            res.status(200).json({ message: 'Delete successful' });
+        } catch (err) {
+            console.error('Error executing query:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    });
+    
   
       const port = process.env.PORT || 2410;
       app.listen(port, () => {
